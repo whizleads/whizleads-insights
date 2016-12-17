@@ -42,17 +42,12 @@ def insight():
 
 	connection = httplib.HTTPSConnection('parseapi.back4app.com', 443)
 	connection.connect()
-	connection.request('POST', '/classes/Insight', json.dumps({
-       "user": "suFefMagbS",
-       "user": "DRzfTPRg4L",
-       "type": "topic",
-       "confidence": 95,
-       "tweet": "Bill Gates is coming to Australia",
-       "insight": "Bill Gates"
-     }), {
+	# TECH DEBT: Keys should never store keys in the repository. 
+	# We should be passing the keys in the request using POSTMAN or similar. 
+	# As we are in Development Environment instead of Production Environment it is "acceptable"
+	connection.request('GET', '/classes/Lead', '', {
 	       "X-Parse-Application-Id": "9LT6MCUSdT4mnzlNkG2pS8L51wvMWvugurQJnjwB",
-	       "X-Parse-REST-API-Key": "6gwEVURQBIkh9prcc3Bgy8tRiJTFYFbJJkQsB45w",
-	       "Content-Type": "application/json"
+	       "X-Parse-REST-API-Key": "6gwEVURQBIkh9prcc3Bgy8tRiJTFYFbJJkQsB45w"
 	     })
 	result = json.loads(connection.getresponse().read())
 	print result
