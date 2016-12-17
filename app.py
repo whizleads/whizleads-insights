@@ -60,8 +60,9 @@ def lead():
         		confidence = 0.501 #as for now every time same value comes out
        			data = '{"type":"Sentiments","descriptions": text_list, "tweetId": tweetId, "Confidence": confidence,"user": userid[i],"lead":leaduserid[i] }'
        			response = requests.post('https://parseapi.back4app.com/classes/Insight', headers=headers, data=data)
-	return jsonify({'Successfully added data to Insights'})
 '''
+	return jsonify({'Successfully added data to Insights'})
+
 
 port = int(os.environ.get('PORT', 5000))
 app.run(host="0.0.0.0", port=port, debug=True)
