@@ -44,6 +44,12 @@ connection = httplib.HTTPSConnection('parseapi.back4app.com', 443)
 
 	return jsonify(result)
 
+port = int(os.environ.get('PORT', 5000))
+app.run(host="0.0.0.0", port=port, debug=True)
+
+if __name__ == "__main__":
+    app.run()
+
 # TECH DEBT: We should be using a POST request using POSTMAN or similar.
 # As we will use the API internally for the moment it is "acceptable"
 @app.route('/insight')
