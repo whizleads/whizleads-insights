@@ -24,23 +24,21 @@ def index():
     return render_template('index.html')
 
 
-@app.route('/tweets')
-def tweets():
-
-	return render_template('index.html')
-
-'''	
+@app.route('/lead')
+def lead():
+	
 	headers = {
 	    	'X-Parse-Application-Id': '9LT6MCUSdT4mnzlNkG2pS8L51wvMWvugurQJnjwB',
 	        'X-Parse-REST-API-Key': '6gwEVURQBIkh9prcc3Bgy8tRiJTFYFbJJkQsB45w',
-}
+	}
 
 	screen_name=[]
 	leaduserid = []
 	userid = []
 	result = requests.get('https://parseapi.back4app.com/classes/Lead', headers=headers)
 	r=json.loads(result.text)
-	
+
+'''	
 	for i in range(0,len(r["results"])):
 	    screen_name.append(r["results"][i]["manualTwitterURL"])
 	    leaduserid.append(r["results"][i]['objectId'])
