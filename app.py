@@ -29,10 +29,9 @@ def lead():
 port = int(os.environ.get('PORT', 5000))
 app.run(host="0.0.0.0", port=port, debug=True)
 
-
 if __name__ == "__main__":
     app.run()
-    
+
 @app.route('/insight', method='POST')
 def insight():
 
@@ -47,7 +46,8 @@ def insight():
        "insight": "Bill Gates"
      }), {
 	       "X-Parse-Application-Id": "9LT6MCUSdT4mnzlNkG2pS8L51wvMWvugurQJnjwB",
-	       "X-Parse-REST-API-Key": "6gwEVURQBIkh9prcc3Bgy8tRiJTFYFbJJkQsB45w"
+	       "X-Parse-REST-API-Key": "6gwEVURQBIkh9prcc3Bgy8tRiJTFYFbJJkQsB45w",
+	       "Content-Type": "application/json"
 	     })
 	result = json.loads(connection.getresponse().read())
 	print result
@@ -56,7 +56,6 @@ def insight():
 
 port = int(os.environ.get('PORT', 5000))
 app.run(host="0.0.0.0", port=port, debug=True)
-
 
 if __name__ == "__main__":
     app.run()
