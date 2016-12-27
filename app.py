@@ -61,7 +61,7 @@ def tweets():
 	        analysis = TextBlob(tweet.text, analyzer=NaiveBayesAnalyzer())
 	        
 		try:
-    			interestTopic=analysis.noun_phrases[0]
+    			interestTopic=analysis.noun_phrases[1]
 		except IndexError:
     			interestTopic = 'null'
 	        polarity = 'Positive'
