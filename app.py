@@ -3,6 +3,7 @@ from flask import Flask, request, render_template, jsonify
 import tweepy
 from textblob import TextBlob
 from textblob.sentiments import NaiveBayesAnalyzer
+from textblob.np_extractors import ConllExtractor
 from textblob import Word
 import sys
 import requests
@@ -47,53 +48,72 @@ def tweets():
 	twitterURL = []
 	leadid=[]
 	userid = []
+	oldest = {}
 	for i in range(0,len(result['results'])):
 	    twitterURL.append(result['results'][i]['manualTwitterURL'])
 	    leadid.append(result['results'][i]['objectId'])
 	    userid.append(result['results'][i]['user']['objectId'])
 
-	for i in range(len(twitterURL)):
+	for i in range(0,len(twitterURL)):
 	    alltweets = []
-	    new_tweets = api.user_timeline(screen_name =twitterURL[i],count=20)
-	    alltweets.extend(new_tweets)
-	    #oldest = alltweets[-1].id - 1
-	    for tweet in new_tweets:
-	        analysis = TextBlob(tweet.text, analyzer=NaiveBayesAnalyzer())
+	    oldestid=json.load(open("lastTweetId.txt"))
+	    try:
+	    	oldestid = oldest.get(twitterURL[i])
+	    except IndexError:
+	        oldestid = '0'
+    	
+    	if oldestid == '0':
+        	new_tweets = api.user_timeline(screen_name =twitterURL[i],count=20)
+    	else:
+	    	new_tweets = api.user_timeline(screen_name =twitterURL[i],count=20, since_id = oldestid)
+
+		alltweets.extend(new_tweets)
+
+		for tweet in alltweets:
+			analysis = TextBlob(tweet.text, analyzer=NaiveBayesAnalyzer(), np_extractor=ConllExtractor())
 	        
-		try:
-    			interestTopic=analysis.noun_phrases[1]
-		except IndexError:
-    			interestTopic = 'null'
-	        polarity = 'Positive'
-	        if (analysis.sentiment.p_pos < 0.50):
-	            polarity = 'Negative'
-	        connection = httplib.HTTPSConnection('parseapi.back4app.com', 443)
-	        connection.connect()
-	        connection.request('POST', '/classes/Insight', json.dumps({
-	               "user": 
-	                    {
-	                      "__type": "Pointer",
-	                      "className": "_User",
-	                      "objectId": userid[i]
-	                    },
-	               "lead":
-	                    {
-	                      "__type": "Pointer",
-	                      "className": "Lead",
-	                      "objectId": leadid[i]
-	                    },
-	               "type": "topic",
-	               "confidence": analysis.sentiment.p_pos*100,
-	               "tweet": tweet.text,
-	               "insight": polarity,
-	               "tweetId": tweet.id,
-	               "interestTopic": interestTopic,
-	               "description": "insight"
-	             }), {
-	                "X-Parse-Application-Id": "9LT6MCUSdT4mnzlNkG2pS8L51wvMWvugurQJnjwB",
-	                "X-Parse-REST-API-Key": "6gwEVURQBIkh9prcc3Bgy8tRiJTFYFbJJkQsB45w",
-	                "Content-Type": "application/json"
-	             })
+	        if (analysis.sentiment.p_pos > 0.75):
+	            polarity = 'Positive'
+	        elif (analysis.sentiment.p_neg > 0.75):
+	        	polarity = 'Negative'
+	        else:
+	        	polarity = 'Neutral'
+        
+        	oldest[twitterURL[i]] = tweet.id
+
+        	if (analysis.sentiment.p_pos > 0.70 or analysis.sentiment.p_neg >0.70):
+        		try:
+        			interestTopic=analysis.noun_phrases[0]
+        		except IndexError:
+        			interestTopic = 'null'
+	        	connection = httplib.HTTPSConnection('parseapi.back4app.com', 443)
+	        	connection.connect()
+	        	connection.request('POST', '/classes/Insight', json.dumps({
+	            	   "user": 
+	                	    {
+	                	      "__type": "Pointer",
+	                	      "className": "_User",
+	                	      "objectId": userid[i]
+	                	    },
+	            	   "lead":
+	                	    {
+	                	      "__type": "Pointer",
+	                	      "className": "Lead",
+	                	      "objectId": leadid[i]
+	                	    },
+	            	   "type": "topic",
+	            	   "confidence": analysis.sentiment.p_pos*100,
+	            	   "tweet": tweet.text,
+	            	   "insight": polarity,
+	            	   "tweetId": tweet.id,
+	            	   "interestTopic": interestTopic,
+	            	   "description": "insight"
+	            	 }), {
+	            	    "X-Parse-Application-Id": "9LT6MCUSdT4mnzlNkG2pS8L51wvMWvugurQJnjwB",
+	            	    "X-Parse-REST-API-Key": "6gwEVURQBIkh9prcc3Bgy8tRiJTFYFbJJkQsB45w",
+	            	    "Content-Type": "application/json"
+	            	 })
+	json.dump(oldest,open("lastTweetId.txt","w"))
 
 	return ('Successfully added data to Insights!')
 
