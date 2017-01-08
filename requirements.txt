@@ -12,5 +12,6 @@ textblob==0.11.1
 tweepy==3.5.0
 gunicorn==19.0.0
 Werkzeug==0.11.11
-monkeylearn==0.3.3
+google-api-python-client==1.5.5
+requests==2.12.4
 
