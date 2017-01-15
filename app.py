@@ -112,27 +112,6 @@ def tweets():
 			  	"X-Parse-REST-API-Key": "6gwEVURQBIkh9prcc3Bgy8tRiJTFYFbJJkQsB45w",
 		        "Content-Type": "application/json"
 		    })
-	connection = httplib.HTTPSConnection('parseapi.back4app.com', 443)
-	connection.connect()
-	connection.request('POST', '/classes/Tone', json.dumps({
-	        "emotion_anger":et_score[0],
-	       	"emotion_disgust":et_score[1],
-	       	"emotion_fear":et_score[2],
-	       	"emotion_joy":et_score[3],
-	       	"emotion_sadness":et_score[4],
-	       	"language_analytical":lt_score[0],
-	       	"language_confident":lt_score[1],
-	       	"language_tentative":lt_score[2],
-	       	"social_openness":st_score[0],
-	       	"social_conscientiousness":st_score[1],
-	       	"social_extraversion":st_score[2],
-	       	"social_agreeableness":st_score[3],
-	       	"social_emotional_range":st_score[4],
-	        }), {
-	       	"X-Parse-Application-Id": "9LT6MCUSdT4mnzlNkG2pS8L51wvMWvugurQJnjwB",
-		  	"X-Parse-REST-API-Key": "6gwEVURQBIkh9prcc3Bgy8tRiJTFYFbJJkQsB45w",
-	        "Content-Type": "application/json"
-	    })
 		
 	return ('Successfully added data to Insights!')
 
