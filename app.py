@@ -6,8 +6,6 @@ import requests
 import json,httplib,urllib
 from watson_developer_cloud import ToneAnalyzerV3
 
-
-os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'WhizLeadsInsights.json'
 consumer_key= '4F4rkhWlzJx1geKY7EIFoyOyp'
 consumer_secret= '6uvr35kgy7CziY8zzGlHbywAVNEb8qzMaxs0DnL5lupH8HYH9D'
 access_token='801128036364091392-3edsjInInkhwUR87PblYwKsuGmPsHob'
