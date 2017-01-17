@@ -12,6 +12,6 @@ textblob==0.11.1
 tweepy==3.5.0
 gunicorn==19.0.0
 Werkzeug==0.11.11
-requests==2.12.4
+requests==2.11.1
 pysolr>=3.3,<4.0
 argparse>=1.3.0
