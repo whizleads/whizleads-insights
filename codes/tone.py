@@ -8,7 +8,6 @@ from google.cloud import language
 from watson_developer_cloud import ToneAnalyzerV3
 
 
-os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'WhizLeadsInsights.json'
 consumer_key= '4F4rkhWlzJx1geKY7EIFoyOyp'
 consumer_secret= '6uvr35kgy7CziY8zzGlHbywAVNEb8qzMaxs0DnL5lupH8HYH9D'
 access_token='801128036364091392-3edsjInInkhwUR87PblYwKsuGmPsHob'
@@ -16,7 +15,6 @@ access_token_secret='KEL1QWcLZy1TsG4gloLB1w1wmme5Iu6b65wje5VubNjxM'
 auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
 auth.set_access_token(access_token, access_token_secret)
 api = tweepy.API(auth)
-client = language.Client()
 
 tone_analyzer = ToneAnalyzerV3(
    username='6cd057f4-b2a9-409c-b8d7-07c28329e449',

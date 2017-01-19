@@ -5,7 +5,11 @@ import sys
 import requests
 import json,httplib,urllib
 from watson_developer_cloud import ToneAnalyzerV3
+import csv
+import pandas
 
+
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'WhizLeadsInsights.json'
 consumer_key= '4F4rkhWlzJx1geKY7EIFoyOyp'
 consumer_secret= '6uvr35kgy7CziY8zzGlHbywAVNEb8qzMaxs0DnL5lupH8HYH9D'
 access_token='801128036364091392-3edsjInInkhwUR87PblYwKsuGmPsHob'
@@ -65,7 +69,7 @@ def tweets():
         	huntweets.append(tweet.text.encode("utf-8"))
     	huntweets = json.dumps(huntweets)
 
-    	k =tone_analyzer.tone(text=huntweets,sentences=False)
+    	k = tone_analyzer.tone(text=huntweets,sentences=False)
     	s = k["document_tone"]["tone_categories"][0]["tones"]
     	emo_tone = k["document_tone"]["tone_categories"][0]["tones"]
     	lan_tone = k["document_tone"]["tone_categories"][1]["tones"]
@@ -111,7 +115,122 @@ def tweets():
 		        "Content-Type": "application/json"
 		    })
 		
-	return ('Successfully added data to Insights!')
+	return ('Successfully added tone values to Insights!')
+
+@app.route('/personality')
+def personalitytweets():
+
+	connection = httplib.HTTPSConnection('parseapi.back4app.com',443)
+	params = urllib.urlencode({
+	        "where":json.dumps({
+	        "manualTwitterURL": {
+	        "$ne": ""
+	       }
+	     }),
+	    "include":"user",
+	    "keys":"manualTwitterURL,user.objectId"
+	    })
+	connection.connect()
+	connection.request('GET', '/classes/Lead?%s' % params, '', {
+	       "X-Parse-Application-Id": "9LT6MCUSdT4mnzlNkG2pS8L51wvMWvugurQJnjwB",
+	       "X-Parse-REST-API-Key": "6gwEVURQBIkh9prcc3Bgy8tRiJTFYFbJJkQsB45w"
+	     })
+	result = json.loads(connection.getresponse().read())
+
+	twitterURL = []
+	leadid=[]
+	userid = []
+	for i in range(0,len(result['results'])):
+	    twitterURL.append(result['results'][i]['manualTwitterURL'])
+	    leadid.append(result['results'][i]['objectId'])
+	    userid.append(result['results'][i]['user']['objectId'])
+	for i in range(0,len(twitterURL)):
+		alltweets = []
+    	huntweets = []
+    	new_tweets = api.user_timeline(screen_name =twitterURL[i],count=100, exclude_replies= True)
+    	alltweets.extend(new_tweets)
+    	for tweet in alltweets:
+        	huntweets.append(tweet.text.encode("utf-8"))
+    	huntweets = json.dumps(huntweets)
+
+    	r = requests.post('https://gateway.watsonplatform.net/personality-insights/api/v2/profile',auth=('14b0fbeb-89b2-4a04-a442-c6a21af1eed4','ec2MeIUi6SOY'),headers={'content-type': 'text/plain','accept': 'text/csv'},data=json.dumps(huntweets))
+    	pers_value = [[r.text.encode("utf-8")] for i in r]
+
+    	with open('pers.csv', 'wb') as f:
+    		writer = csv.writer(f)
+    		writer.writerow(["personality"])
+    		writer.writerows(pers_value)
+    	pass
+
+    	data_pers = pandas.read_csv('pers.csv')
+    	k = data_pers.iloc[1].str.split(",")
+
+		
+    	connection = httplib.HTTPSConnection('parseapi.back4app.com', 443)
+    	connection.connect()
+    	connection.request('POST', '/classes/Personality', json.dumps({
+		     
+		       	"personality_big5_openness":k[0][30],
+	       		"personality_big5_openness_facet_adventurousness":k[0][31],
+	       		"personality_big5_openness_facet_artistic_interests":k[0][32],
+	       		"personality_big5_openness_facet_emotionality":k[0][33],
+	       		"personality_big5_openness_facet_imagination":k[0][34],
+	       		"personality_big5_openness_facet_intellect":k[0][35],
+	       		"personality_big5_openness_facet_liberalism":k[0][36],
+	       		"personality_big5_conscientiousness":k[0][9],
+	       		"personality_big5_conscientiousness_facet_achievement_striving":k[0][10],
+	       		"personality_big5_conscientiousness_facet_cautiousness":k[0][11],
+	       		"personality_big5_conscientiousness_facet_dutifulness":k[0][12],
+	       		"personality_big5_conscientiousness_facet_orderliness":k[0][13],
+	       		"personality_big5_conscientiousness_facet_self_discipline":k[0][14],
+	       		"personality_big5_conscientiousness_facet_self_efficacy":k[0][15],
+	       		"personality_big5_extraversion":k[0][16],
+	       		"personality_big5_extraversion_facet_activity_level":k[0][17],
+	       		"personality_big5_extraversion_facet_assertiveness":k[0][18],
+	       		"personality_big5_extraversion_facet_cheerfulness":k[0][19],
+	       		"personality_big5_extraversion_facet_excitement_seeking":k[0][20],
+	       		"personality_big5_extraversion_facet_friendliness":k[0][21],
+	       		"personality_big5_extraversion_facet_gregariousness":k[0][22],
+	       		"personality_big5_agreeableness":k[0][2],
+	       		"personality_big5_agreeableness_facet_altruism":k[0][3],
+	       		"personality_big5_agreeableness_facet_cooperation":k[0][4],
+	       		"personality_big5_agreeableness_facet_modesty":k[0][5],
+	       		"personality_big5_agreeableness_facet_morality":k[0][6],
+	       		"personality_big5_agreeableness_facet_sympathy":k[0][7],
+	       		"personality_big5_agreeableness_facet_trust":k[0][8],
+	       		"personality_big5_neuroticism":k[0][23],
+	       		"personality_big5_neuroticism_facet_anger":k[0][24],
+	       		"personality_big5_neuroticism_facet_anxiety":k[0][25],
+	       		"personality_big5_neuroticism_facet_depression":k[0][26],
+	       		"personality_big5_neuroticism_facet_immoderation":k[0][27],
+	       		"personality_big5_neuroticism_facet_self_consciousness":k[0][28],
+	       		"personality_big5_neuroticism_facet_vulnerability":k[0][29],
+	       		"needs":k[0][45],
+	       		"needs_need_challenge":k[0][44],
+	       		"needs_need_closeness":k[0][45],
+	       		"needs_need_curiosity":k[0][46],
+	       		"needs_need_excitement":k[0][47],
+	       		"needs_need_harmony":k[0][48],
+	       		"needs_need_ideal":k[0][39],
+	       		"needs_need_liberty":k[0][38],
+	       		"needs_need_love":k[0][40],
+	       		"needs_need_practicality":k[0][41],
+	       		"needs_need_self_expression":k[0][42],
+	       		"needs_need_stability":k[0][43],
+	       		"needs_need_structure":k[0][44],
+	       		"values":k[0][53],
+	       		"values_value_conservation":k[0][49],
+	       		"values_value_openness_to_change":k[0][51],
+	       		"values_value_hedonism":k[0][50],
+	       		"values_value_self_enhancement":k[0][52],
+	       		"values_value_self_transcendence":k[0][53],
+		        }), {
+		       	"X-Parse-Application-Id": "9LT6MCUSdT4mnzlNkG2pS8L51wvMWvugurQJnjwB",
+			  	"X-Parse-REST-API-Key": "6gwEVURQBIkh9prcc3Bgy8tRiJTFYFbJJkQsB45w",
+		        "Content-Type": "application/json"
+		    })
+		
+	return ('Successfully added personality values to Insights!')
 
 
 port = int(os.environ.get('PORT', 5000))
