@@ -64,6 +64,8 @@ def tweets():
 		alltweets = []
     	huntweets = []
     	new_tweets = api.user_timeline(screen_name =twitterURL[i],count=100, exclude_replies= True)
+    	status_count = len(new_tweets)
+        max_id = new_tweets[status_count - 1].id - 1 
     	alltweets.extend(new_tweets)
     	for tweet in alltweets:
         	huntweets.append(tweet.text.encode("utf-8"))
@@ -96,6 +98,7 @@ def tweets():
 		               	"objectId": leadid[i]
 		            },
 		       	"text":huntweets,
+		       	"last_tweet_tone_id": max_id,
 		       	"emotion_anger":et_score[0],
 	       		"emotion_disgust":et_score[1],
 	       		"emotion_fear":et_score[2],
@@ -148,13 +151,15 @@ def personalitytweets():
 		alltweets = []
     	huntweets = []
     	new_tweets = api.user_timeline(screen_name =twitterURL[i],count=100, exclude_replies= True)
+    	status_count = len(new_tweets)
+        max_id = new_tweets[status_count - 1].id - 1
     	alltweets.extend(new_tweets)
     	for tweet in alltweets:
         	huntweets.append(tweet.text.encode("utf-8"))
     	huntweets = json.dumps(huntweets)
 
     	r = requests.post('https://gateway.watsonplatform.net/personality-insights/api/v2/profile',auth=('14b0fbeb-89b2-4a04-a442-c6a21af1eed4','ec2MeIUi6SOY'),headers={'content-type': 'text/plain','accept': 'text/csv'},data=json.dumps(huntweets))
-    	pers_value = [[r.text.encode("utf-8")] for i in r]
+    	pers_value = [[r.text.encode("utf-8")] for x in r]
 
     	with open('pers.csv', 'wb') as f:
     		writer = csv.writer(f)
@@ -169,7 +174,20 @@ def personalitytweets():
     	connection = httplib.HTTPSConnection('parseapi.back4app.com', 443)
     	connection.connect()
     	connection.request('POST', '/classes/Personality', json.dumps({
-		     
+    			"user": 
+		           	{
+		               	"__type": "Pointer",
+		                "className": "_User",
+		           	    "objectId": userid[i]
+		            },
+		       	"lead":
+		           	{
+		           	  	"__type": "Pointer",
+		                "className": "Lead",
+		               	"objectId": leadid[i]
+		            },
+		     	"text":huntweets,
+		     	"last_tweet_pers_id": max_id,
 		       	"personality_big5_openness":k[0][30],
 	       		"personality_big5_openness_facet_adventurousness":k[0][31],
 	       		"personality_big5_openness_facet_artistic_interests":k[0][32],
@@ -230,7 +248,7 @@ def personalitytweets():
 		        "Content-Type": "application/json"
 		    })
 		
-	return ('Successfully added personality values to Insights!')
+	return ("Personality Insights added to the Database!. Status code: %d" % (r.status_code))
 
 
 port = int(os.environ.get('PORT', 5000))
