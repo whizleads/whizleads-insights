@@ -22,6 +22,24 @@ tone_analyzer = ToneAnalyzerV3(
    password='4bpwH6CaLspp',
    version='2016-05-19')
 
+PARSE_PRODUCTION_APLICATION_ID= "9LT6MCUSdT4mnzlNkG2pS8L51wvMWvugurQJnjwB"
+PARSE_PRODUCTION_REST_API_KEY = "6gwEVURQBIkh9prcc3Bgy8tRiJTFYFbJJkQsB45w"
+
+PARSE_DEVELOPMENT_APLICATION_ID= "9LT6MCUSdT4mnzlNkG2pS8L51wvMWvugurQJnjwB"
+PARSE_DEVELOPMENT_REST_API_KEY = "6gwEVURQBIkh9prcc3Bgy8tRiJTFYFbJJkQsB45w"
+
+if (PRODUCTION_ENVIRONMENT):
+
+	{
+  		Parse_Application_Id = PARSE_PRODUCTION_APLICATION_ID
+  		Parse_REST_API_Key = PARSE_PRODUCTION_REST_API_KEY
+	}
+else:
+	{
+  		Parse_Application_Id = PARSE_DEVELOPMENT_APLICATION_ID
+  		Parse_REST_API_Key = PARSE_DEVELOPMENT_REST_API_KEY
+	}
+
 app = Flask(__name__)
 
 @app.route('/')
@@ -56,6 +74,7 @@ def tweets():
 	et_score = []
 	lt_score = []
 	st_score = []
+	oldest = {}
 	for i in range(0,len(result['results'])):
 	    twitterURL.append(result['results'][i]['manualTwitterURL'])
 	    leadid.append(result['results'][i]['objectId'])
@@ -63,9 +82,20 @@ def tweets():
 	for i in range(0,len(twitterURL)):
 		alltweets = []
     	huntweets = []
-    	new_tweets = api.user_timeline(screen_name =twitterURL[i],count=100, exclude_replies= True)
+    	oldestid=json.load(open("lastTweetId_tone.txt"))
+	    try:
+	    	oldestid = oldest.get(twitterURL[i])
+	    except IndexError:
+	        oldestid = '0'
+
+    	if oldestid == '0':
+        	new_tweets = api.user_timeline(screen_name =twitterURL[i],count=100, exclude_replies= True)
+    	else:
+	    	new_tweets = api.user_timeline(screen_name =twitterURL[i],count=100, exclude_replies= True, since_id = oldestid)
+    	#new_tweets = api.user_timeline(screen_name =twitterURL[i],count=100, exclude_replies= True)
     	status_count = len(new_tweets)
         max_id = new_tweets[status_count - 1].id - 1 
+        oldest[twitterURL[i]] = tweet.id
     	alltweets.extend(new_tweets)
     	for tweet in alltweets:
         	huntweets.append(tweet.text.encode("utf-8"))
@@ -117,6 +147,7 @@ def tweets():
 			  	"X-Parse-REST-API-Key": "6gwEVURQBIkh9prcc3Bgy8tRiJTFYFbJJkQsB45w",
 		        "Content-Type": "application/json"
 		    })
+    json.dump(oldest,open("lastTweetId_tone.txt","w"))
 		
 	return ('Successfully added tone values to Insights!')
 
@@ -150,9 +181,22 @@ def personalitytweets():
 	for i in range(0,len(twitterURL)):
 		alltweets = []
     	huntweets = []
+    	oldest = {}
+    	oldestid=json.load(open("lastTweetId_pers.txt"))
+	    try:
+	    	oldestid = oldest.get(twitterURL[i])
+	    except IndexError:
+	        oldestid = '0'
+
+    	if oldestid == '0':
+        	new_tweets = api.user_timeline(screen_name =twitterURL[i],count=100, exclude_replies= True)
+    	else:
+	    	new_tweets = api.user_timeline(screen_name =twitterURL[i],count=100, exclude_replies= True, since_id = oldestid)
+
     	new_tweets = api.user_timeline(screen_name =twitterURL[i],count=100, exclude_replies= True)
     	status_count = len(new_tweets)
         max_id = new_tweets[status_count - 1].id - 1
+        oldest[twitterURL[i]] = tweet.id
     	alltweets.extend(new_tweets)
     	for tweet in alltweets:
         	huntweets.append(tweet.text.encode("utf-8"))
@@ -248,6 +292,7 @@ def personalitytweets():
 		        "Content-Type": "application/json"
 		    })
 		
+	json.dump(oldest,open("lastTweetId_pers.txt","w"))
 	return ("Personality Insights added to the Database!. Status code: %d" % (r.status_code))
 
 
